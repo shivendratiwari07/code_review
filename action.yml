@@ -39,4 +39,4 @@ runs:
         PR_NUMBER: ${{ inputs.PR_NUMBER }}
         GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
-        python ./script/code_review.py
+        python ${{ github.action_path }}/script/code_review.py
