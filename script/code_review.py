@@ -19,8 +19,6 @@ headers = {
     'Accept': 'application/vnd.github.v3+json'
 }
 
-
-
 # Check if cookie is set, or exit
 if not custom_service_cookie:
     print("Error: CUSTOM_SERVICE_COOKIE environment variable is not set")
@@ -73,11 +71,21 @@ def send_diff_to_openai(diff, rules):
         'diff': diff,
         'rules': rules
     }
-    
+
     try:
         response = requests.post(AZURE_OPENAI_API_URL, json=payload, headers=philips_headers)
-        response.raise_for_status()
-        return response.json()
+        response.raise_for_status()  # Raise an error for bad HTTP status codes
+
+        # Log the raw response for debugging
+        print(f"API response status code: {response.status_code}")
+        print(f"Raw response content: {response.text}")  # Log the raw content
+
+        # Attempt to parse the response as JSON
+        try:
+            return response.json()  # Parse the JSON response
+        except ValueError as json_error:
+            print(f"Failed to parse JSON: {json_error}")
+            return None  # Handle non-JSON responses gracefully
     except requests.exceptions.RequestException as e:
         print(f"Failed to get a response from OpenAI API: {e}")
         return None
