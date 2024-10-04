@@ -72,6 +72,18 @@ def send_diff_to_openai(diff, rules):
         'rules': rules
     }
 
+    # Check if the diff or rules are empty and log them
+    if not diff:
+        print("Error: Diff is empty. Cannot send to API.")
+        return None
+    if not rules:
+        print("Error: Rules are empty. Cannot send to API.")
+        return None
+
+    # Log the payload for debugging purposes before sending to API
+    print("Payload being sent to OpenAI API:")
+    print(json.dumps(payload, indent=2))  # Pretty-print the payload for easier reading
+
     try:
         response = requests.post(AZURE_OPENAI_API_URL, json=payload, headers=philips_headers)
         response.raise_for_status()  # Raise an error for bad HTTP status codes
@@ -79,6 +91,10 @@ def send_diff_to_openai(diff, rules):
         # Log the raw response for debugging
         print(f"API response status code: {response.status_code}")
         print(f"Raw response content: {response.text}")  # Log the raw content
+
+        if response.status_code == 204:
+            print("Received 204 No Content. No feedback available.")
+            return None  # No feedback to process
 
         # Attempt to parse the response as JSON
         try:
