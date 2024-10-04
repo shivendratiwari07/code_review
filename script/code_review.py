@@ -42,7 +42,24 @@ def get_changed_files():
 
 def filter_relevant_files(files):
     """Filter files based on extensions."""
-    relevant_extensions = ('.cs', '.js', '.csproj')
+    relevant_extensions = (
+        '.py',
+        '.js', '.jsx', '.ts', '.tsx',  # JavaScript/TypeScript
+        '.java',
+        '.cs',     # C#
+        '.c', '.cpp', '.h', '.hpp',  # C/C++
+        '.go',     # Go
+        '.rb',     # Ruby
+        '.php',    # PHP
+        '.html', '.css',  # HTML/CSS
+        '.kt',     # Kotlin
+        '.swift',  # Swift
+        '.scala',  # Scala
+        '.rs',     # Rust
+        '.sh',     # Shell Scripts
+        '.dart',   # Dart
+        '.sql'     # SQL
+    )
     return [f for f in files if f['filename'].endswith(relevant_extensions)]
 
 def fetch_diff(file):
