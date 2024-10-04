@@ -23,6 +23,7 @@ runs:
       uses: actions/checkout@v2
 
     - name: Set up Python environment
+      shell: bash
       run: |
         python --version
         python -m venv venv
