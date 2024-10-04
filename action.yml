@@ -1,0 +1,41 @@
+name: "Automated Code Review with Philips OpenAI API"
+description: "Run an automated code review on pull requests using Philips OpenAI API and post comments to PR."
+
+
+inputs:
+  GITHUB_TOKEN:
+    description: "GitHub token to authenticate the API requests"
+    required: true
+  CUSTOM_SERVICE_COOKIE:
+    description: "Custom service authentication cookie for Philips OpenAI API"
+    required: true
+  GITHUB_REPOSITORY:
+    description: "GitHub repository name (e.g., owner/repo)"
+    required: true
+  PR_NUMBER:
+    description: "Pull request number"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python environment
+      run: |
+        python --version
+        python -m venv venv
+        source venv/bin/activate
+        pip install requests
+
+    - name: Run the code review script
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        CUSTOM_SERVICE_COOKIE: ${{ inputs.CUSTOM_SERVICE_COOKIE }}
+        GITHUB_REPOSITORY: ${{ inputs.GITHUB_REPOSITORY }}
+        PR_NUMBER: ${{ inputs.PR_NUMBER }}
+        GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        python ./script/code_review.py
