@@ -82,75 +82,53 @@ def send_diff_to_openai(diff, rules):
         ]
     }
 
-    # Log the payload for debugging purposes before sending to API
     print("Payload being sent to DEX API:")
     print(json.dumps(payload, indent=2))
 
     try:
         response = requests.post(AZURE_OPENAI_API_URL, json=payload, headers=philips_headers)
+        response.raise_for_status()
 
-        response.raise_for_status()  # Raise an error for bad HTTP status codes
-
-        # Log the raw response for debugging
         print(f"API response status code: {response.status_code}")
         print(f"Raw response content: {response.text}")
 
-        # Parse the response as JSON
-        try:
-            response_data = response.json()
-        except ValueError as json_error:
-            print(f"Failed to parse JSON: {json_error}")
-            return None
+        # Parse the response content as JSON
+        response_data = response.json()
 
-        # Return the comments or message from the response directly
-        return response_data
+        # Extract the content from the API's response
+        if "choices" in response_data and len(response_data["choices"]) > 0:
+            return response_data["choices"][0]["message"]["content"]
+        else:
+            print("Unexpected response format from DEX API.")
+            return None
 
     except requests.exceptions.RequestException as e:
         print(f"Failed to get a response from DEX API: {e}")
         return None
 
-def post_review(comments, commit_id, file, diff):
-    """Post a review comment on the PR for specific lines in the diff or a general comment if everything is good."""
-    review_comments = []
+def post_review(content, commit_id, file):
+    """Post a review comment on the PR."""
+    review_comments = [{
+        'path': file['filename'],
+        'position': 1,  # General comment at the start of the diff
+        'body': content
+    }]
 
-    # If the response contains specific comments, post them.
-    if 'comments' in comments:
-        for comment in comments['comments']:
-            # Locate the line number in the diff where the comment should be placed
-            diff_lines = diff.split('\n')
-            position = 0
-            for idx, line in enumerate(diff_lines):
-                if line.startswith('+') and comment['line'] in line:
-                    position = idx + 1  # GitHub uses 1-based index
+    url = f'{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/pulls/{PR_NUMBER}/reviews'
+    review_data = {
+        'commit_id': commit_id,
+        'body': 'Automated Code Review by OpenAI Azure 4o',
+        'event': 'COMMENT',
+        'comments': review_comments
+    }
 
-            review_comment = {
-                'path': file['filename'],
-                'position': position,  # Position in the diff, not the original file
-                'body': comment['body']
-            }
-            review_comments.append(review_comment)
-
-    # If a general message is provided, add it as a review comment.
-    elif 'message' in comments:
-        review_comments.append({
-            'path': file['filename'],
-            'position': 1,  # Position in the diff, not the original file
-            'body': comments['message']
-        })
-
-    if review_comments:
-        url = f'{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/pulls/{PR_NUMBER}/reviews'
-        review_data = {
-            'commit_id': commit_id,
-            'body': 'Automated Code Review by OpenAI Azure 4o',
-            'event': 'COMMENT',
-            'comments': review_comments
-        }
-        response = requests.post(url, headers=headers, data=json.dumps(review_data))
-        if response.status_code != 200:
-            print(f"Failed to post review: {response.content}")
-        else:
-            print("Review posted successfully.")
+    try:
+        response = requests.post(url, headers=headers, json=review_data)
+        response.raise_for_status()
+        print("Review posted successfully.")
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to post review: {e}")
+        print(f"Response content: {response.content}")
 
 def main():
     files = get_changed_files()
@@ -204,7 +182,7 @@ def main():
             print("Sending diff to DEX API...")
             feedback = send_diff_to_openai(diff, rules)
             if feedback:
-                post_review(feedback, commit_id, file, diff)
+                post_review(feedback, commit_id, file)
             else:
                 print(f"No feedback received for {file['filename']}.")
         else:
