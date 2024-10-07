@@ -47,10 +47,11 @@ def filter_relevant_files(files):
     )
     return [f for f in files if f['filename'].endswith(relevant_extensions)]
 
-def fetch_diff(file):
-    """Fetch the diff content for a file."""
+def fetch_added_lines_only(file):
+    """Fetch only the added lines (lines starting with '+') from the diff."""
     patch = file.get('patch', '')
-    return patch
+    added_lines = [line for line in patch.splitlines() if line.startswith('+') and not line.startswith('+++')]
+    return '\n'.join(added_lines)
 
 def get_pull_request_commit_id():
     """Fetch the head commit ID of the pull request."""
@@ -75,7 +76,7 @@ def send_diff_to_openai(diff, rules):
                             "\n\nIf the code meets all the standards, respond with: 'Everything looks good.'"
                             " If there are issues, provide a brief summary (1-2 sentences) about the key areas of improvement."
                             "\n\nKeep your response short, like a human reviewer might provide."
-                            "\n\nHere is the diff:\n\n"
+                            "\n\nHere is the diff with only the added lines:\n\n"
                             + diff
                         )
                     }
@@ -157,16 +158,16 @@ def main():
 
     for file in relevant_files:
         print(f"Analyzing {file['filename']}...")
-        diff = fetch_diff(file)
-        if diff:
-            print("Sending diff to DEX API...")
-            feedback = send_diff_to_openai(diff, rules)
+        added_lines = fetch_added_lines_only(file)
+        if added_lines:
+            print("Sending added lines to DEX API for review...")
+            feedback = send_diff_to_openai(added_lines, rules)
             if feedback:
                 post_review(feedback, commit_id, file)
             else:
                 print(f"No feedback received for {file['filename']}.")
         else:
-            print(f"No diff found for {file['filename']}.")
+            print(f"No added lines found for {file['filename']}.")
 
 if __name__ == '__main__':
     if not all([GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER]):
