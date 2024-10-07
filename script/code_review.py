@@ -67,14 +67,6 @@ def send_diff_to_openai(diff, rules):
         'rules': rules
     }
 
-    # Check if the diff or rules are empty and log them
-    if not diff:
-        print("Error: Diff is empty. Cannot send to API.")
-        return "Everything looks good."
-    if not rules:
-        print("Error: Rules are empty. Cannot send to API.")
-        return "Everything looks good."
-
     # Log the payload for debugging purposes before sending to API
     print("Payload being sent to DEX API:")
     print(json.dumps(payload, indent=2))
@@ -92,23 +84,18 @@ def send_diff_to_openai(diff, rules):
             response_data = response.json()
         except ValueError as json_error:
             print(f"Failed to parse JSON: {json_error}")
-            return "Everything looks good."
-
-        # Ensure the response is not empty and contains expected feedback
-        if isinstance(response_data, str) and response_data == "Everything looks good.":
-            print("Confirmation: 'Everything looks good.' received directly from DEX API")
-            return response_data
+            return None
 
         # Check if the response contains feedback in the expected format.
         if 'comments' in response_data and response_data['comments']:
             return response_data['comments']
 
         # If the response contains no comments but isn't empty, assume it means "Everything looks good."
-        return "Everything looks good."
+        return response_data
 
     except requests.exceptions.RequestException as e:
         print(f"Failed to get a response from DEX API: {e}")
-        return "Error: Could not communicate with the DEX API."
+        return None
 
 def post_review(comments, commit_id, file, diff):
     """Post a review comment on the PR for specific lines in the diff or a general comment if everything is good."""
