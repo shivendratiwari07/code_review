@@ -63,23 +63,8 @@ def get_pull_request_commit_id():
 def send_diff_to_openai(diff, rules):
     """Send the diff to the Azure OpenAI API for code review with cookie-based authentication."""
     payload = {
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": (
-                            "Please review the code changes provided in the diff below based on the following criteria:\n\n"
-                            + rules +
-                            "\n\nIf the code meets all the standards, respond with: 'Everything looks good.'"
-                            "\n\nHere is the diff:\n\n"
-                            + diff
-                        )
-                    }
-                ]
-            }
-        ]
+        'diff': diff,
+        'rules': rules
     }
 
     # Log the payload for debugging purposes before sending to API
@@ -89,7 +74,12 @@ def send_diff_to_openai(diff, rules):
     try:
         response = requests.post(AZURE_OPENAI_API_URL, json=payload, headers=philips_headers)
 
-        response.raise_for_status()  # Raise an error for bad HTTP status codes
+        # Check for a 204 No Content response and interpret it as "Everything looks good."
+        if response.status_code == 204:
+            print("Confirmation: 204 No Content received, treating as 'Everything looks good.'")
+            return "Everything looks good."
+
+        response.raise_for_status()  # Raise an error for other bad HTTP status codes
 
         # Log the raw response for debugging
         print(f"API response status code: {response.status_code}")
@@ -102,7 +92,15 @@ def send_diff_to_openai(diff, rules):
             print(f"Failed to parse JSON: {json_error}")
             return None
 
-        # Return the comments or message from the response directly
+        # Check if the response contains feedback in the expected format.
+        if 'comments' in response_data and response_data['comments']:
+            return response_data['comments']
+
+        # If the response contains a message like "Everything looks good.", return it.
+        if isinstance(response_data, dict) and 'message' in response_data:
+            return response_data['message']
+
+        # If the response contains no comments but isn't empty, assume it means "Everything looks good."
         return response_data
 
     except requests.exceptions.RequestException as e:
@@ -113,9 +111,16 @@ def post_review(comments, commit_id, file, diff):
     """Post a review comment on the PR for specific lines in the diff or a general comment if everything is good."""
     review_comments = []
 
-    # If the response contains specific comments, post them.
-    if 'comments' in comments:
-        for comment in comments['comments']:
+    # If the comments contain a string indicating "Everything looks good.", post a general comment.
+    if isinstance(comments, str) and comments == "Everything looks good.":
+        review_comments.append({
+            'path': file['filename'],
+            'position': 1,  # Position in the diff, not the original file
+            'body': comments
+        })
+    else:
+        # Otherwise, iterate through each comment received from the API.
+        for comment in comments:
             # Locate the line number in the diff where the comment should be placed
             diff_lines = diff.split('\n')
             position = 0
@@ -129,14 +134,6 @@ def post_review(comments, commit_id, file, diff):
                 'body': comment['body']
             }
             review_comments.append(review_comment)
-
-    # If a general message is provided, add it as a review comment.
-    elif 'message' in comments:
-        review_comments.append({
-            'path': file['filename'],
-            'position': 1,  # Position in the diff, not the original file
-            'body': comments['message']
-        })
 
     if review_comments:
         url = f'{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/pulls/{PR_NUMBER}/reviews'
@@ -194,7 +191,7 @@ def main():
        - Suggest refactoring such duplicated code into reusable functions or constants.
        - Example: If similar payloads or requests are repeated, suggest extracting them into a function.
 
-    Please provide specific comments on each point and suggest improvements where applicable. If all criteria are met, respond with: 'Everything looks good.'
+    Please provide specific comments on each point and suggest improvements where applicable.
     """
 
     for file in relevant_files:
