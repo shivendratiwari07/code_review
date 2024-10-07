@@ -197,6 +197,7 @@ def main():
     6. **Code Duplication**:
        - Identify sections where the same logic or code block is repeated.
        - Suggest refactoring such duplicated code into reusable functions or constants.
+       - Example: If similar payloads or requests are repeated, suggest extracting them into a function.
 
     Please provide specific comments on each point and suggest improvements where applicable.
     """
