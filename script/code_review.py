@@ -73,6 +73,8 @@ def send_diff_to_openai(diff, rules):
                             "Please review the code changes provided in the diff below based on the following criteria:\n\n"
                             + rules +
                             "\n\nIf the code meets all the standards, respond with: 'Everything looks good.'"
+                            " If there are issues, provide a brief summary (1-2 sentences) about the key areas of improvement."
+                            "\n\nKeep your response short, like a human reviewer might provide."
                             "\n\nHere is the diff:\n\n"
                             + diff
                         )
@@ -144,35 +146,13 @@ def main():
     rules = """
     Please review the code changes provided in the diff below based on the following criteria:
 
-    1. **Code Quality Rules**:
-       - **Naming Conventions**: Ensure that variable and function names are clear and descriptive. Flag any instances where single-letter variable names or abbreviations are used without context.
-         - Example: Instead of using `a` or `tmp`, suggest using `user_age` or `temporary_value` for clarity.
-       - **Avoid Magic Numbers**: Identify any instances where numbers are used directly in the code without being assigned to a named constant.
-         - Example: Instead of using `for i in range(10)`, suggest `MAX_ITERATIONS = 10` and `for i in range(MAX_ITERATIONS)`.
-       - **Comment Requirements**: Check that each function has a docstring or comment explaining its purpose.
+    1. Code Quality Rules: Check for clear naming conventions, avoid magic numbers, and ensure functions have comments.
+    2. Performance Optimization: Look for unnecessary iterations and inefficient string concatenations.
+    3. Security Best Practices: Check for input validation and avoid hard-coded secrets.
+    4. Maintainability: Remove dead code and ensure proper exception handling.
+    5. Code Style: Check brace style, consistent indentation, and look out for duplicated code.
 
-    2. **Performance Optimization Rules**:
-       - **Unnecessary Iterations**: Identify any nested loops that could be optimized or simplified.
-       - **String Concatenation in Loops**: Recommend using string interpolation or `join` instead of `+` for concatenating strings inside loops.
-         - Example: Instead of `result += str(i)`, suggest `result = ''.join([str(i) for i in range(100)])`.
-
-    3. **Security Best Practices**:
-       - **Validate Input**: Ensure that functions accepting user input include input validation.
-       - **Hard-Coded Secrets**: Flag any instances of API keys, passwords, or tokens being used directly in the code.
-
-    4. **Maintainability Rules**:
-       - **Dead Code**: Identify any commented-out code that should be removed for cleanliness.
-       - **Exception Handling**: Ensure that try-catch blocks are used where needed and that error messages are clear.
-
-    5. **Code Style Enforcement**:
-       - **Brace Style**: Ensure that opening braces are on the same line as function definitions and control structures.
-       - **Consistent Indentation**: Verify that the code uses consistent indentation (e.g., 4 spaces per indentation level).
-    6. **Code Duplication**:
-       - Identify sections where the same logic or code block is repeated.
-       - Suggest refactoring such duplicated code into reusable functions or constants.
-       - Example: If similar payloads or requests are repeated, suggest extracting them into a function.
-
-    Please provide specific comments on each point and suggest improvements where applicable. If all criteria are met, respond with: 'Everything looks good.'
+    If everything looks good, respond with 'Everything looks good.' Otherwise, provide a brief 1-2 sentence summary of what needs to be improved.
     """
 
     for file in relevant_files:
