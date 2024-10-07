@@ -101,8 +101,9 @@ def send_diff_to_openai(diff, rules):
         print(f"Raw response content: {response.text}")  # Log the raw content
 
         if response.status_code == 204:
-            print("Received 204 No Content. No feedback available.")
-            return "Everything looks good."  # No feedback to process, indicate that everything is fine
+            print("Received 204 No Content. It is possible the API did not find any issues.")
+            print("Please manually verify if there are any duplications or other concerns.")
+            return "Everything looks good. Please verify manually for potential duplications."
 
         # Attempt to parse the response as JSON
         try:
