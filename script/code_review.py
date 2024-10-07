@@ -73,7 +73,13 @@ def send_diff_to_openai(diff, rules):
 
     try:
         response = requests.post(AZURE_OPENAI_API_URL, json=payload, headers=philips_headers)
-        response.raise_for_status()  # Raise an error for bad HTTP status codes
+
+        # Check for a 204 No Content response and interpret it as "Everything looks good."
+        if response.status_code == 204:
+            print("Confirmation: 204 No Content received, treating as 'Everything looks good.'")
+            return "Everything looks good."
+
+        response.raise_for_status()  # Raise an error for other bad HTTP status codes
 
         # Log the raw response for debugging
         print(f"API response status code: {response.status_code}")
@@ -89,6 +95,10 @@ def send_diff_to_openai(diff, rules):
         # Check if the response contains feedback in the expected format.
         if 'comments' in response_data and response_data['comments']:
             return response_data['comments']
+
+        # If the response contains a message like "Everything looks good.", return it.
+        if isinstance(response_data, dict) and 'message' in response_data:
+            return response_data['message']
 
         # If the response contains no comments but isn't empty, assume it means "Everything looks good."
         return response_data
