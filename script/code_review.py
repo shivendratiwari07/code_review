@@ -176,6 +176,7 @@ def main():
        - **Avoid Magic Numbers**: Identify any instances where numbers are used directly in the code without being assigned to a named constant.
          - Example: Instead of using `for i in range(10)`, suggest `MAX_ITERATIONS = 10` and `for i in range(MAX_ITERATIONS)`.
        - **Comment Requirements**: Check that each function has a docstring or comment explaining its purpose.
+       - **Code Duplication**: Identify any duplicated code blocks or logic that can be refactored to avoid repetition.
 
     2. **Performance Optimization Rules**:
        - **Unnecessary Iterations**: Identify any nested loops that could be optimized or simplified.
