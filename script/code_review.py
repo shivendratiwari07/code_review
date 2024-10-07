@@ -65,6 +65,14 @@ def fetch_diff(file):
     patch = file.get('patch', '')
     return patch
 
+def get_pull_request_commit_id():
+    """Fetch the head commit ID of the pull request."""
+    url = f'{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/pulls/{PR_NUMBER}'
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    pr_data = response.json()
+    return pr_data['head']['sha']
+
 def send_diff_to_openai(diff, rules):
     """Send the diff to the Azure OpenAI API for code review with cookie-based authentication."""
     payload = {
@@ -155,7 +163,8 @@ def main():
         print("No relevant files to analyze.")
         sys.exit(0)
 
-    commit_id = os.getenv('GITHUB_SHA')
+    # Fetch the correct commit ID from the PR
+    commit_id = get_pull_request_commit_id()
 
     # Define the rules with more detailed instructions and examples
     rules = """
