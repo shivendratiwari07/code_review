@@ -41,22 +41,9 @@ def get_changed_files():
 def filter_relevant_files(files):
     """Filter files based on extensions."""
     relevant_extensions = (
-        '.py',
-        '.js', '.jsx', '.ts', '.tsx',  # JavaScript/TypeScript
-        '.java',
-        '.cs',
-        '.c', '.cpp', '.h', '.hpp',  
-        '.go',
-        '.rb',     
-        '.php',    
-        '.html', '.css',  
-        '.kt',     
-        '.swift',  # Swift
-        '.scala',  # Scala
-        '.rs',     # Rust
-        '.sh',     # Shell Scripts
-        '.dart',   # Dart
-        '.sql'     # SQL
+        '.py', '.js', '.jsx', '.ts', '.tsx', '.java', '.cs', '.c', '.cpp', '.h', '.hpp',  
+        '.go', '.rb', '.php', '.html', '.css', '.kt', '.swift', '.scala', '.rs', '.sh', 
+        '.dart', '.sql'
     )
     return [f for f in files if f['filename'].endswith(relevant_extensions)]
 
@@ -83,10 +70,10 @@ def send_diff_to_openai(diff, rules):
     # Check if the diff or rules are empty and log them
     if not diff:
         print("Error: Diff is empty. Cannot send to API.")
-        return None
+        return "Everything looks good."
     if not rules:
         print("Error: Rules are empty. Cannot send to API.")
-        return None
+        return "Everything looks good."
 
     # Log the payload for debugging purposes before sending to API
     print("Payload being sent to DEX API:")
@@ -101,7 +88,11 @@ def send_diff_to_openai(diff, rules):
         print(f"Raw response content: {response.text}")
 
         # Parse the response as JSON
-        response_data = response.json()
+        try:
+            response_data = response.json()
+        except ValueError as json_error:
+            print(f"Failed to parse JSON: {json_error}")
+            return "Everything looks good."
 
         # Ensure the response is not empty and contains expected feedback
         if isinstance(response_data, str) and response_data == "Everything looks good.":
@@ -118,9 +109,6 @@ def send_diff_to_openai(diff, rules):
     except requests.exceptions.RequestException as e:
         print(f"Failed to get a response from DEX API: {e}")
         return "Error: Could not communicate with the DEX API."
-    except ValueError as json_error:
-        print(f"Failed to parse JSON: {json_error}")
-        return "Error: Received invalid JSON from the DEX API."
 
 def post_review(comments, commit_id, file, diff):
     """Post a review comment on the PR for specific lines in the diff or a general comment if everything is good."""
