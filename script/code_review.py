@@ -44,9 +44,9 @@ def filter_relevant_files(files):
         '.py',
         '.js', '.jsx', '.ts', '.tsx',  # JavaScript/TypeScript
         '.java',
-        '.cs',     
+        '.cs',
         '.c', '.cpp', '.h', '.hpp',  
-        '.go',     
+        '.go',
         '.rb',     
         '.php',    
         '.html', '.css',  
