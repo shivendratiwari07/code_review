@@ -44,13 +44,13 @@ def filter_relevant_files(files):
         '.py',
         '.js', '.jsx', '.ts', '.tsx',  # JavaScript/TypeScript
         '.java',
-        '.cs',     # C#
-        '.c', '.cpp', '.h', '.hpp',  # C/C++
-        '.go',     # Go
-        '.rb',     # Ruby
-        '.php',    # PHP
-        '.html', '.css',  # HTML/CSS
-        '.kt',     # Kotlin
+        '.cs',     
+        '.c', '.cpp', '.h', '.hpp',  
+        '.go',     
+        '.rb',     
+        '.php',    
+        '.html', '.css',  
+        '.kt',     
         '.swift',  # Swift
         '.scala',  # Scala
         '.rs',     # Rust
@@ -89,8 +89,8 @@ def send_diff_to_openai(diff, rules):
         return None
 
     # Log the payload for debugging purposes before sending to API
-    print("Payload being sent to OpenAI API:")
-    print(json.dumps(payload, indent=2))  # Pretty-print the payload for easier reading
+    print("Payload being sent to DEX API:")
+    print(json.dumps(payload, indent=2))
 
     try:
         response = requests.post(AZURE_OPENAI_API_URL, json=payload, headers=philips_headers)
@@ -98,22 +98,29 @@ def send_diff_to_openai(diff, rules):
 
         # Log the raw response for debugging
         print(f"API response status code: {response.status_code}")
-        print(f"Raw response content: {response.text}")  # Log the raw content
+        print(f"Raw response content: {response.text}")
 
-        if response.status_code == 204:
-            print("Received 204 No Content. It is possible the API did not find any issues.")
-            print("Please manually verify if there are any duplications or other concerns.")
-            return "Everything looks good. Please verify manually for potential duplications."
+        # Parse the response as JSON
+        response_data = response.json()
 
-        # Attempt to parse the response as JSON
-        try:
-            return response.json()  # Parse the JSON response
-        except ValueError as json_error:
-            print(f"Failed to parse JSON: {json_error}")
-            return None  # Handle non-JSON responses gracefully
+        # Ensure the response is not empty and contains expected feedback
+        if isinstance(response_data, str) and response_data == "Everything looks good.":
+            print("Confirmation: 'Everything looks good.' received directly from DEX API")
+            return response_data
+
+        # Check if the response contains feedback in the expected format.
+        if 'comments' in response_data and response_data['comments']:
+            return response_data['comments']
+
+        # If the response contains no comments but isn't empty, assume it means "Everything looks good."
+        return "Everything looks good."
+
     except requests.exceptions.RequestException as e:
-        print(f"Failed to get a response from OpenAI API: {e}")
-        return None
+        print(f"Failed to get a response from DEX API: {e}")
+        return "Error: Could not communicate with the DEX API."
+    except ValueError as json_error:
+        print(f"Failed to parse JSON: {json_error}")
+        return "Error: Received invalid JSON from the DEX API."
 
 def post_review(comments, commit_id, file, diff):
     """Post a review comment on the PR for specific lines in the diff or a general comment if everything is good."""
@@ -178,7 +185,6 @@ def main():
          - Example: Instead of using `for i in range(10)`, suggest `MAX_ITERATIONS = 10` and `for i in range(MAX_ITERATIONS)`.
        - **Comment Requirements**: Check that each function has a docstring or comment explaining its purpose.
 
-
     2. **Performance Optimization Rules**:
        - **Unnecessary Iterations**: Identify any nested loops that could be optimized or simplified.
        - **String Concatenation in Loops**: Recommend using string interpolation or `join` instead of `+` for concatenating strings inside loops.
@@ -207,7 +213,7 @@ def main():
         print(f"Analyzing {file['filename']}...")
         diff = fetch_diff(file)
         if diff:
-            print("Sending diff to OpenAI API...")
+            print("Sending diff to DEX API...")
             feedback = send_diff_to_openai(diff, rules)
             if feedback:
                 post_review(feedback, commit_id, file, diff)
