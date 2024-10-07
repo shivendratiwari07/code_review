@@ -94,7 +94,7 @@ def send_diff_to_openai(diff, rules):
 
         if response.status_code == 204:
             print("Received 204 No Content. No feedback available.")
-            return None  # No feedback to process
+            return "Everything looks good."  # No feedback to process, indicate that everything is fine
 
         # Attempt to parse the response as JSON
         try:
@@ -107,23 +107,32 @@ def send_diff_to_openai(diff, rules):
         return None
 
 def post_review(comments, commit_id, file, diff):
-    """Post a review comment on the PR for specific lines in the diff."""
+    """Post a review comment on the PR for specific lines in the diff or a general comment if everything is good."""
     review_comments = []
 
-    for comment in comments:
-        # Locate the line number in the diff where the comment should be placed
-        diff_lines = diff.split('\n')
-        position = 0
-        for idx, line in enumerate(diff_lines):
-            if line.startswith('+') and comment['line'] in line:
-                position = idx + 1  # GitHub uses 1-based index
-
-        review_comment = {
+    # If the comments contain a string indicating "Everything looks good.", post a general comment.
+    if isinstance(comments, str) and comments == "Everything looks good.":
+        review_comments.append({
             'path': file['filename'],
-            'position': position,  # Position in the diff, not the original file
-            'body': comment['body']
-        }
-        review_comments.append(review_comment)
+            'position': 1,  # Position in the diff, not the original file
+            'body': comments
+        })
+    else:
+        # Otherwise, iterate through each comment received from the API.
+        for comment in comments:
+            # Locate the line number in the diff where the comment should be placed
+            diff_lines = diff.split('\n')
+            position = 0
+            for idx, line in enumerate(diff_lines):
+                if line.startswith('+') and comment['line'] in line:
+                    position = idx + 1  # GitHub uses 1-based index
+
+            review_comment = {
+                'path': file['filename'],
+                'position': position,  # Position in the diff, not the original file
+                'body': comment['body']
+            }
+            review_comments.append(review_comment)
 
     if review_comments:
         url = f'{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/pulls/{PR_NUMBER}/reviews'
@@ -186,7 +195,7 @@ def main():
             print("Sending diff to OpenAI API...")
             feedback = send_diff_to_openai(diff, rules)
             if feedback:
-                post_review(feedback['comments'], commit_id, file, diff)
+                post_review(feedback, commit_id, file, diff)
             else:
                 print(f"No feedback received for {file['filename']}.")
         else:
