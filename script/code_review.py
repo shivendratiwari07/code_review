@@ -148,29 +148,35 @@ def main():
 
     commit_id = os.getenv('GITHUB_SHA')
 
-    # Define the rules from the document
+    # Define the rules with more detailed instructions and examples
     rules = """
-    1. Code Quality Rules:
-       - Naming Conventions
-       - Comment Requirements
-       - Avoid Magic Numbers
-       - Method Length
+    Please review the code changes provided in the diff below based on the following criteria:
 
-    2. Performance Optimization Rules:
-       - Avoid Unnecessary LINQ Queries
-       - Avoid String Concatenation in Loops
-       - Avoid Excessive Boxing/Unboxing
+    1. **Code Quality Rules**:
+       - **Naming Conventions**: Ensure that variable and function names are clear and descriptive. Flag any instances where single-letter variable names or abbreviations are used without context.
+         - Example: Instead of using `a` or `tmp`, suggest using `user_age` or `temporary_value` for clarity.
+       - **Avoid Magic Numbers**: Identify any instances where numbers are used directly in the code without being assigned to a named constant.
+         - Example: Instead of using `for i in range(10)`, suggest `MAX_ITERATIONS = 10` and `for i in range(MAX_ITERATIONS)`.
+       - **Comment Requirements**: Check that each function has a docstring or comment explaining its purpose.
 
-    3. Security Best Practices:
-       - Validate Input
-       - Check for Hard-Coded Secrets
+    2. **Performance Optimization Rules**:
+       - **Unnecessary Iterations**: Identify any nested loops that could be optimized or simplified.
+       - **String Concatenation in Loops**: Recommend using string interpolation or `join` instead of `+` for concatenating strings inside loops.
+         - Example: Instead of `result += str(i)`, suggest `result = ''.join([str(i) for i in range(100)])`.
 
-    4. Maintainability Rules:
-       - Dead Code Detection
-       - Consistent Use of Exception Handling
+    3. **Security Best Practices**:
+       - **Validate Input**: Ensure that functions accepting user input include input validation.
+       - **Hard-Coded Secrets**: Flag any instances of API keys, passwords, or tokens being used directly in the code.
 
-    5. Code Style Enforcement:
-       - Consistent Brace Style
+    4. **Maintainability Rules**:
+       - **Dead Code**: Identify any commented-out code that should be removed for cleanliness.
+       - **Exception Handling**: Ensure that try-catch blocks are used where needed and that error messages are clear.
+
+    5. **Code Style Enforcement**:
+       - **Brace Style**: Ensure that opening braces are on the same line as function definitions and control structures.
+       - **Consistent Indentation**: Verify that the code uses consistent indentation (e.g., 4 spaces per indentation level).
+
+    Please provide specific comments on each point and suggest improvements where applicable.
     """
 
     for file in relevant_files:
