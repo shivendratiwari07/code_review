@@ -74,8 +74,8 @@ def send_diff_to_openai(diff, rules):
                             "Please review the code changes provided in the diff below based on the following criteria:\n\n"
                             + rules +
                             "\n\nIf the overall code appears to be 80% good or more, respond with: 'Everything looks good.'"
-                            " If there are issues, provide a concise summary (1-2 sentences) of the key areas needing improvement."
-                            " Highlight specific code lines if applicable, without suggesting detailed solutions."
+                            " If there are issues, provide a brief summary (max 2 sentences) of the key areas needing improvement."
+                            " Include a code snippet from the diff that illustrates the issue, without suggesting detailed solutions."
                             "\n\nKeep the response brief, as if it were from a human reviewer."
                             "\n\nHere is the diff with only the added lines:\n\n"
                             + diff
@@ -154,7 +154,7 @@ def main():
     4. Maintainability: Look for dead code, proper exception handling, and ensure modularity.
     5. Code Style: Confirm consistent indentation, brace style, and identify any duplicated code.
 
-    If the overall code appears to be 80% good or more, simply respond with 'Everything looks good.' If there are issues, provide a concise summary (1-2 sentences) of the key areas needing improvement, and highlight specific lines if applicable. Keep the tone brief and human-like.
+    If the overall code appears to be 80% good or more, simply respond with 'Everything looks good.' If there are issues, provide a brief summary (max 2 sentences) of the key areas needing improvement, and include a code snippet from the diff that illustrates the issue. Keep the tone brief and human-like.
     """
 
     for file in relevant_files:
