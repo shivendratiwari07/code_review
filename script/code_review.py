@@ -74,7 +74,7 @@ def send_diff_to_openai(diff, rules):
                             "Please review the code changes provided in the diff below based on the following criteria:\n\n"
                             + rules +
                             "\n\nIf the code meets all the standards, respond with: 'Everything looks good.'"
-                            " If there are issues, provide a brief summary (1-2 sentences) about the key areas of improvement."
+                            " If there are issues, provide a brief summary (1 sentences) about the key areas of improvement."
                             "\n\nKeep your response short, like a human reviewer might provide."
                             "\n\nHere is the diff with only the added lines:\n\n"
                             + diff
@@ -147,13 +147,13 @@ def main():
     rules = """
     Please review the code changes provided in the diff below based on the following criteria:
 
-    1. Code Quality Rules: Check for clear naming conventions, avoid magic numbers, and ensure functions have comments.
-    2. Performance Optimization: Look for unnecessary iterations and inefficient string concatenations.
-    3. Security Best Practices: Check for input validation and avoid hard-coded secrets.
-    4. Maintainability: Remove dead code and ensure proper exception handling.
-    5. Code Style: Check brace style, consistent indentation, and look out for duplicated code.
+    1. Code Quality: Ensure clear naming conventions, avoid magic numbers, and verify that functions have appropriate comments.
+    2. Performance Optimization: Identify any unnecessary iterations or inefficient string concatenations.
+    3. Security Best Practices: Check for proper input validation and the absence of hard-coded secrets.
+    4. Maintainability: Look for dead code, proper exception handling, and ensure modularity.
+    5. Code Style: Confirm consistent indentation, brace style, and identify any duplicated code.
 
-    If everything looks good, respond with 'Everything looks good.' Otherwise, provide a brief 1-2 sentence summary of what needs to be improved.
+    If the overall code appears to be 80% good or more, simply respond with 'Everything looks good.' If there are issues, provide a concise summary (1-2 sentences) of the key areas needing improvement, without suggesting specific solutions. Keep the tone brief and human-like.
     """
 
     for file in relevant_files:
