@@ -71,12 +71,8 @@ def send_diff_to_openai(diff, rules):
                     {
                         "type": "text",
                         "text": (
-                            "Please review the code changes provided in the diff below based on the following criteria:\n\n"
+                            "Act as a senior code reviewer and evaluate the code changes below.\n\n"
                             + rules +
-                            "\n\nIf the overall code appears to be 80% good or more and has no critical issues, respond with: 'Everything looks good.'"
-                            " If there are critical issues that need attention, provide a brief summary (max 2 sentences) of the key areas needing improvement."
-                            " Include a code snippet from the diff that illustrates the issue, without suggesting detailed solutions or minor improvements."
-                            "\n\nKeep the response brief, as if it were from a human reviewer."
                             "\n\nHere is the diff with only the added lines:\n\n"
                             + diff
                         )
@@ -144,17 +140,18 @@ def main():
     # Fetch the correct commit ID from the PR
     commit_id = get_pull_request_commit_id()
 
-    # Define the rules with more detailed instructions and examples
+    # Define the rules with detailed instructions for a focused review
     rules = """
-    Please review the code changes provided in the diff below based on the following criteria:
+    Focus on providing feedback on critical aspects of the code, such as functionality, security, and maintainability. Consider the following criteria:
 
-    1. Code Quality: Ensure clear naming conventions, avoid magic numbers, and verify that functions have appropriate comments.
-    2. Performance Optimization: Identify any unnecessary iterations or inefficient string concatenations.
-    3. Security Best Practices: Check for proper input validation and the absence of hard-coded secrets.
-    4. Maintainability: Look for dead code, proper exception handling, and ensure modularity.
-    5. Code Style: Confirm consistent indentation, brace style, and identify any duplicated code.
+    1. Critical Issues Only: Focus on identifying potential bugs, security vulnerabilities, and critical performance issues. 
+       Ignore minor code style preferences, naming conventions, or trivial improvements unless they significantly impact readability.
+    2. Security Concerns: Look for issues like SQL injection risks, unsafe handling of user input, hard-coded credentials, or sensitive data exposure.
+    3. Performance Issues: Highlight inefficient algorithms or code patterns that could lead to noticeable slowdowns in the application's runtime.
+    4. Functional Problems: Identify potential logic errors, misuse of APIs, or cases where the code could fail unexpectedly.
+    5. Code Quality: Only flag missing comments, poor naming, or structure if they make the code difficult to understand or maintain in the long run.
 
-    If the overall code appears to be 80% good or more and has no critical issues, simply respond with 'Everything looks good.' If there are critical issues, provide a brief summary (max 2 sentences) of the key areas needing improvement, and include a code snippet from the diff that illustrates the issue. Keep the tone brief and human-like.
+    If the overall code is 80% good or more and contains no critical issues, respond with: 'Everything looks good.' If there are critical issues, provide a concise summary (max 2 sentences) of the areas that need improvement, and include a relevant code snippet illustrating the issue. Keep your feedback brief and to the point, as a human reviewer would.
     """
 
     for file in relevant_files:
