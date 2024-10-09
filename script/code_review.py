@@ -74,8 +74,8 @@ def send_diff_to_openai(diff, rules):
                             "Act as a senior code reviewer. Focus only on critical and blocker issues in the provided code changes.\n\n"
                             + rules +
                             "\n\nYour feedback should highlight only critical or blocker issues, such as security vulnerabilities, significant bugs, or performance bottlenecks."
+                            " Include a brief explanation of each issue (max 2 sentences) and provide a code snippet that demonstrates the problem."
                             " If everything looks fine, respond with: 'Everything looks good.'"
-                            " If there are critical issues, provide a brief summary (max 2 sentences) of the key areas needing improvement."
                             " Keep your tone human-like, direct, and to the point. Ignore minor issues or non-critical feedback."
                             "\n\nHere is the diff with only the added lines:\n\n"
                             + diff
