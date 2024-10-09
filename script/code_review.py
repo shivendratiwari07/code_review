@@ -26,7 +26,7 @@ if not custom_service_cookie:
 
 # Custom headers for Philips API
 philips_headers = {
-    'Cookie': f'{custom_service_cookie}',
+    'Cookie': f'{custom_service_cookie}',  # Custom service authentication via cookie
     'Content-Type': 'application/json'
 }
 
@@ -50,7 +50,7 @@ def filter_relevant_files(files):
 def fetch_added_lines_only(file):
     """Fetch only the added lines (lines starting with '+') from the diff."""
     patch = file.get('patch', '')
-    added_lines = [line[1:] for line in patch.splitlines() if line.startswith('+') and not line.startswith('+++')]
+    added_lines = [line for line in patch.splitlines() if line.startswith('+') and not line.startswith('+++')]
     return '\n'.join(added_lines)
 
 def get_pull_request_commit_id():
@@ -71,13 +71,13 @@ def send_diff_to_openai(diff, rules):
                     {
                         "type": "text",
                         "text": (
-                            "Please review the newly added code changes provided below based on the following criteria:\n\n"
+                            "Please review the code changes provided in the diff below based on the following criteria:\n\n"
                             + rules +
                             "\n\nIf the overall code appears to be 80% good or more and has no critical issues, respond with: 'Everything looks good.'"
                             " If there are critical issues that need attention, provide a brief summary (max 2 sentences) of the key areas needing improvement."
-                            " Include a code snippet from the provided code that illustrates the issue, without suggesting detailed solutions or minor improvements."
+                            " Include a code snippet from the diff that illustrates the issue, without suggesting detailed solutions or minor improvements."
                             "\n\nKeep the response brief, as if it were from a human reviewer."
-                            "\n\nHere is the newly added code:\n\n"
+                            "\n\nHere is the diff with only the added lines:\n\n"
                             + diff
                         )
                     }
@@ -146,12 +146,15 @@ def main():
 
     # Define the rules with more detailed instructions and examples
     rules = """
-    Please review the code changes provided based on the following criteria:
+    Please review the code changes provided in the diff below based on the following criteria:
+
     1. Code Quality: Ensure clear naming conventions, avoid magic numbers, and verify that functions have appropriate comments.
     2. Performance Optimization: Identify any unnecessary iterations or inefficient string concatenations.
     3. Security Best Practices: Check for proper input validation and the absence of hard-coded secrets.
     4. Maintainability: Look for dead code, proper exception handling, and ensure modularity.
     5. Code Style: Confirm consistent indentation, brace style, and identify any duplicated code.
+
+    If the overall code appears to be 80% good or more and has no critical issues, simply respond with 'Everything looks good.' If there are critical issues, provide a brief summary (max 2 sentences) of the key areas needing improvement, and include a code snippet from the diff that illustrates the issue. Keep the tone brief and human-like.
     """
 
     for file in relevant_files:
