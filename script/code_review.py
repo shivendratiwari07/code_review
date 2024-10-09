@@ -50,7 +50,8 @@ def filter_relevant_files(files):
 def fetch_added_lines_only(file):
     """Fetch only the added lines (lines starting with '+') from the diff."""
     patch = file.get('patch', '')
-    added_lines = [line for line in patch.splitlines() if line.startswith('+') and not line.startswith('+++')]
+    # Extract lines that start with '+' but ignore lines like '+++ file_name'
+    added_lines = [line[1:] for line in patch.splitlines() if line.startswith('+') and not line.startswith('+++')]
     return '\n'.join(added_lines)
 
 def get_pull_request_commit_id():
@@ -175,6 +176,7 @@ if __name__ == '__main__':
         print("Missing environment variables.")
         sys.exit(1)
     main()
+
 
 
 
