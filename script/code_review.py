@@ -251,12 +251,16 @@ def send_diff_to_openai(diff, rules):
                     {
                         "type": "text",
                         "text": (
-                            "Act as a senior code reviewer. Focus only on critical and blocker issues in the provided code changes.\n\n"
+                            "Act as a senior code reviewer focusing only on critical and blocker issues.\n\n"
                             + rules +
-                            "\n\nYour feedback should highlight only critical or blocker issues, such as security vulnerabilities, significant bugs, or performance bottlenecks."
-                            " Include a brief explanation of each issue (max 2 sentences) and provide a code snippet that demonstrates the problem."
-                            " If everything looks fine, respond with: 'Everything looks good.'"
-                            " Keep your tone human-like, direct, and to the point. Ignore minor issues or non-critical feedback."
+                            "\n\nYour feedback should strictly identify critical and blocker issues, such as:"
+                            "- Security vulnerabilities (e.g., input validation, exposure of secrets)."
+                            "- Major bugs that could cause crashes or incorrect behavior."
+                            "- Significant performance bottlenecks that affect scalability or response time."
+                            " Ignore any non-critical issues such as style suggestions, naming conventions, or minor optimizations."
+                            " Include a short explanation (max 2 sentences) and, if possible, a code snippet illustrating the issue."
+                            " If no critical issues are present, respond with: 'Everything looks good.'"
+                            " Keep your tone direct, human-like, and focused on the most serious issues only."
                             "\n\nHere is the diff with only the added lines:\n\n"
                             + diff
                         )
