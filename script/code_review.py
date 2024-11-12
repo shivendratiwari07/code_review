@@ -57,8 +57,8 @@ def get_latest_commit_files(commit_id):
 def filter_relevant_files(files):
     """Filter files based on extensions."""
     relevant_extensions = (
-        '.py', '.js', '.jsx', '.ts', '.tsx', '.java', '.cs', '.c', 
-        '.cpp', '.h', '.hpp', '.go', '.rb', '.php', '.html', '.css', 
+        '.py', '.js', '.jsx', '.ts', '.tsx', '.java', '.cs', '.c',
+        '.cpp', '.h', '.hpp', '.go', '.rb', '.php', '.html', '.css',
         '.kt', '.swift', '.scala', '.rs', '.sh', '.dart', '.sql'
     )
     return [f for f in files if f['filename'].endswith(relevant_extensions)]
@@ -94,6 +94,13 @@ def send_diff_to_dex(diff, rules, dex_cookies, max_retries=3):
     }
     print("Payload being sent to DEX API:")
     print(json.dumps(payload, indent=2))
+
+    print("Headers being sent:")
+    print(json.dumps(headers, indent=2))
+
+    print("Cookies being sent:")
+    print(dex_cookies.get_dict())
+
     attempts = 0
     while attempts < max_retries:
         try:
@@ -138,7 +145,6 @@ def post_review(content, commit_id, file):
 def main():
     # Authenticate with DEX API to get cookies
     dex_cookies = login_to_dex()
-
     if not dex_cookies:
         print("Failed to obtain cookies from DEX API.")
         sys.exit(1)
