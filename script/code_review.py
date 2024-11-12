@@ -27,8 +27,15 @@ def login_to_dex():
         'password': DEX_PASSWORD
     }
     session = requests.Session()
-    response = session.post(DEX_LOGIN_URL, data=login_payload)
-    response.raise_for_status()
+    try:
+        response = session.post(DEX_LOGIN_URL, data=login_payload)
+        print(f"Login Response Code: {response.status_code}")
+        print(f"Login Response Content: {response.text}")
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print(f"HTTP error occurred during login: {err}")
+    except Exception as err:
+        print(f"An unexpected error occurred during login: {err}")
     return session.cookies
 
 def get_latest_commit():
@@ -72,13 +79,13 @@ def send_diff_to_dex(diff, rules, dex_cookies, max_retries=3):
                     {
                         "type": "text",
                         "text": (
-                            "Please review the code changes provided in the diff below based on the following criteria:\n\n" +
-                            rules +
-                            "\n\nIf the overall code appears to be 80% good or more and has no critical issues, respond with: 'Everything looks good.'" +
-                            " If there are critical issues that need attention, provide a brief summary (max 2 sentences) of the key areas needing improvement." +
-                            " Include a code snippet from the diff that illustrates the issue, without suggesting detailed solutions or minor improvements." +
-                            "\n\nKeep the response brief, as if it were from a human reviewer." +
-                            "\n\nHere is the diff with only the added lines:\n\n" + diff
+                            "Please review the code changes provided in the diff below based on the following criteria:\n\n"
+                            + rules +
+                            "\n\nIf the overall code appears to be 80% good or more and has no critical issues, respond with: 'Everything looks good.'"
+                            + " If there are critical issues that need attention, provide a brief summary (max 2 sentences) of the key areas needing improvement."
+                            + " Include a code snippet from the diff that illustrates the issue, without suggesting detailed solutions or minor improvements."
+                            + "\n\nKeep the response brief, as if it were from a human reviewer."
+                            + "\n\nHere is the diff with only the added lines:\n\n" + diff
                         )
                     }
                 ]
@@ -87,15 +94,13 @@ def send_diff_to_dex(diff, rules, dex_cookies, max_retries=3):
     }
     print("Payload being sent to DEX API:")
     print(json.dumps(payload, indent=2))
-
     attempts = 0
     while attempts < max_retries:
         try:
             response = requests.post(DEX_API_URL, json=payload, headers={'Content-Type': 'application/json'}, cookies=dex_cookies, timeout=60)
+            print(f"DEX API Response Code: {response.status_code}")
+            print(f"DEX API Response Content: {response.text}")
             response.raise_for_status()
-            print(f"API response status code: {response.status_code}")
-            print(f"Raw response content: {response.text}")
-            
             response_data = response.json()
             if "choices" in response_data and len(response_data["choices"]) > 0:
                 return response_data["choices"][0]["message"]["content"]
@@ -105,7 +110,6 @@ def send_diff_to_dex(diff, rules, dex_cookies, max_retries=3):
         except (Timeout, RequestException) as e:
             print(f"Attempt {attempts + 1} failed: {e}")
             attempts += 1
-    
     print("Max retries reached, failing.")
     return None
 
@@ -135,17 +139,20 @@ def main():
     # Authenticate with DEX API to get cookies
     dex_cookies = login_to_dex()
 
+    if not dex_cookies:
+        print("Failed to obtain cookies from DEX API.")
+        sys.exit(1)
+
     # Get the latest commit SHA
     latest_commit_id = get_latest_commit()
 
     # Get the files changed in the latest commit
     latest_commit_files = get_latest_commit_files(latest_commit_id)
     relevant_files = filter_relevant_files(latest_commit_files)
-
     if not relevant_files:
         print("No relevant files to analyze.")
         sys.exit(0)
-    
+
     rules = """
     Please review the code changes provided in the diff below based on the following criteria:
     1. Code Quality: Ensure clear naming conventions, avoid magic numbers, and verify that functions have appropriate comments.
@@ -153,12 +160,11 @@ def main():
     3. Security Best Practices: Check for proper input validation and the absence of hard-coded secrets.
     4. Maintainability: Look for dead code, proper exception handling, and ensure modularity.
     5. Code Style: Confirm consistent indentation, brace style, and identify any duplicated code.
-    
+
     If the overall code appears to be 80% good or more and has no critical issues, simply respond with 'Everything looks good.'
-    If there are critical issues, provide a brief summary (max 2 sentences) of the key areas needing improvement,
-    and include a code snippet from the diff that illustrates the issue. Keep the tone brief and human-like.
+    If there are critical issues, provide a brief summary (max 2 sentences) of the key areas needing improvement, and include a code snippet from the diff that illustrates the issue. Keep the tone brief and human-like.
     """
-    
+
     # Review latest commit relevant files
     for file in relevant_files:
         print(f"Analyzing {file['filename']} from latest commit...")
@@ -172,7 +178,7 @@ def main():
                 print(f"No feedback received for {file['filename']}.")
         else:
             print(f"No added lines found for {file['filename']}.")
-            
+
 if __name__ == '__main__':
     if not all([GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER, DEX_USERNAME, DEX_PASSWORD]):
         print("Missing environment variables.")
