@@ -15,6 +15,12 @@ inputs:
   PR_NUMBER:
     description: "Pull request number"
     required: true
+  DEX_USERNAME:
+    description: "Dex Username"
+    required: true
+  DEX_PASSWORD:
+    description: "Dex password"
+    required: true
 
 runs:
   using: "composite"
@@ -34,7 +40,8 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-        CUSTOM_SERVICE_COOKIE: ${{ inputs.CUSTOM_SERVICE_COOKIE }}
+        DEX_USERNAME: ${{ inputs.DEX_USERNAME }}
+        DEX_PASSWORD: ${{ inputs.DEX_PASSWORD }}
         GITHUB_REPOSITORY: ${{ inputs.GITHUB_REPOSITORY }}
         PR_NUMBER: ${{ inputs.PR_NUMBER }}
         GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
