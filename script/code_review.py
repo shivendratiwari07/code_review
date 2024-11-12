@@ -30,7 +30,6 @@ def login_to_dex():
         'password': DEX_PASSWORD
     }
     
-    print({f"printing the login_payload  :" + login_payload})
     session = requests.Session()
     try:
         headers = {'Content-Type': 'application/json'}
