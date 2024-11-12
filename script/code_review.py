@@ -29,9 +29,17 @@ def login_to_dex():
         'username': DEX_USERNAME,
         'password': DEX_PASSWORD
     }
+    
+    print("printing the login_payload  :" + login_payload + DEX_LOGIN_URL)
     session = requests.Session()
     try:
-        response = session.post(DEX_LOGIN_URL, data=login_payload)
+        headers = {'Content-Type': 'application/json'}
+        response = session.post(DEX_LOGIN_URL, json=login_payload, headers=headers)
+        
+        # Print response details for troubleshooting
+        print(f"Login Response Code: {response.status_code}")
+        print(f"Login Response Text: {response.text}")
+        
         response.raise_for_status()
         return session.cookies
     except requests.exceptions.HTTPError as err:
