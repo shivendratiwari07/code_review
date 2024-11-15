@@ -1,13 +1,9 @@
 name: "Automated Code Review with Philips OpenAI API"
 description: "Run an automated code review on pull requests using Philips OpenAI API and post comments to PR."
 
-
 inputs:
   GITHUB_TOKEN:
     description: "GitHub token to authenticate the API requests"
-    required: true
-  CUSTOM_SERVICE_COOKIE:
-    description: "Custom service authentication cookie for Philips OpenAI API"
     required: true
   GITHUB_REPOSITORY:
     description: "GitHub repository name (e.g., owner/repo)"
@@ -19,7 +15,7 @@ inputs:
     description: "Dex Username"
     required: true
   DEX_PASSWORD:
-    description: "Dex password"
+    description: "Dex Password"
     required: true
 
 runs:
@@ -34,9 +30,9 @@ runs:
         python --version
         python -m venv venv
         source venv/bin/activate
-        pip install requests
+        pip install selenium requests webdriver-manager
 
-    - name: Run the code review script
+    - name: Run get_cookies_selenium.py and code_review.py
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
@@ -46,4 +42,4 @@ runs:
         PR_NUMBER: ${{ inputs.PR_NUMBER }}
         GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
-        python ${{ github.action_path }}/script/code_review.py
+        python ${{ github.action_path }}/script/get_cookies_selenium.py
