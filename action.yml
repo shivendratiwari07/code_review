@@ -24,8 +24,7 @@ runs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install system dependencies for Edge
-      shell: bash
+    - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -35,7 +34,13 @@ runs:
           libatk1.0-0 \
           libpangocairo-1.0-0 \
           libgtk-3-0 \
-          fonts-liberation
+          fonts-liberation \
+          libgbm-dev
+
+    - name: Check Microsoft Edge and WebDriver versions
+      run: |
+        microsoft-edge --version || echo "Edge not found"
+        msedgedriver --version || echo "Edge WebDriver not found"
 
     - name: Set up Python environment
       shell: bash
