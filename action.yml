@@ -24,6 +24,18 @@ runs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Install system dependencies for Edge
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libnss3 \
+          libxss1 \
+          libasound2 \
+          libatk1.0-0 \
+          libpangocairo-1.0-0 \
+          libgtk-3-0 \
+          fonts-liberation
+
     - name: Set up Python environment
       shell: bash
       run: |
