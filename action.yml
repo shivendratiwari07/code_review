@@ -27,9 +27,6 @@ runs:
     - name: Set up Python environment
       shell: bash
       run: |
-        python --version
-        python -m venv venv
-        source venv/bin/activate
         pip install selenium requests webdriver-manager
 
     - name: Run get_cookies_selenium.py and code_review.py
