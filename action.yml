@@ -27,7 +27,7 @@ runs:
     - name: Set up Python environment
       shell: bash
       run: |
-        pip install selenium requests webdriver-manager
+        pip install selenium requests webdriver-manager pyotp
 
     - name: Run get_cookies_selenium.py and code_review.py
       shell: bash
