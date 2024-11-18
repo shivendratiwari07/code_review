@@ -6,17 +6,21 @@ from selenium.webdriver.edge.service import Service
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import pyotp  # Import pyotp for TOTP code generation
+import pyotp
 import time
 import sys
 
 # Get credentials from environment variables
 dex_username = os.getenv('DEX_USERNAME')
 dex_password = os.getenv('DEX_PASSWORD')
-totp = os.getenv('TOTP')
+totp_secret = os.getenv('TOTP')  # Get TOTP secret from environment variable
 
 if not dex_username or not dex_password:
     print("Error: DEX_USERNAME or DEX_PASSWORD not set in the environment variables.")
+    sys.exit(1)
+
+if not totp_secret:
+    print("Error: TOTP not set in the environment variables.")
     sys.exit(1)
 
 # Set up Edge options and service
@@ -76,7 +80,7 @@ try:
     print("Clicked on 'Use a verification code' option.")
 
     # Generate and enter TOTP
-    #totp = pyotp.TOTP("vwf7p7vlrwgkq6q7")  # Replace with your TOTP secret
+    totp = pyotp.TOTP(totp_secret)  # Use TOTP secret from environment variable
     mfa_code = totp.now()
     print(f"MFA Code generated: {mfa_code}")
     mfa_field = WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.XPATH, "//input[@type='tel']")))
