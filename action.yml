@@ -1,6 +1,5 @@
 name: "Automated Code Review with Philips OpenAI API"
 description: "Run an automated code review on pull requests using Philips OpenAI API and post comments to PR."
-
 inputs:
   GITHUB_TOKEN:
     description: "GitHub token to authenticate the API requests"
@@ -56,8 +55,7 @@ runs:
         DEX_USERNAME: ${{ inputs.DEX_USERNAME }}
         DEX_PASSWORD: ${{ inputs.DEX_PASSWORD }}
       run: |
-        CUSTOM_SERVICE_COOKIE=$(python ${{ github.action_path }}/script/get_cookies_selenium.py)
-        echo "::set-output name=CUSTOM_SERVICE_COOKIE::${CUSTOM_SERVICE_COOKIE}"
+        python ${{ github.action_path }}/script/get_cookies_selenium.py
 
     - name: Run the code review script
       if: steps.get_cookies.conclusion == 'success'
