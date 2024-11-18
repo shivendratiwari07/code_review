@@ -13,6 +13,7 @@ import sys
 # Get credentials from environment variables
 dex_username = os.getenv('DEX_USERNAME')
 dex_password = os.getenv('DEX_PASSWORD')
+totp = os.getenv('TOTP')
 
 if not dex_username or not dex_password:
     print("Error: DEX_USERNAME or DEX_PASSWORD not set in the environment variables.")
@@ -75,7 +76,7 @@ try:
     print("Clicked on 'Use a verification code' option.")
 
     # Generate and enter TOTP
-    totp = pyotp.TOTP("vwf7p7vlrwgkq6q7")  # Replace with your TOTP secret
+    #totp = pyotp.TOTP("vwf7p7vlrwgkq6q7")  # Replace with your TOTP secret
     mfa_code = totp.now()
     print(f"MFA Code generated: {mfa_code}")
     mfa_field = WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.XPATH, "//input[@type='tel']")))

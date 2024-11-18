@@ -15,6 +15,7 @@ import subprocess
 dex_username = os.getenv('DEX_USERNAME')
 dex_password = os.getenv('DEX_PASSWORD')
 
+
 if not dex_username or not dex_password:
     print("Error: DEX_USERNAME or DEX_PASSWORD not set in the environment variables.")
     sys.exit(1)

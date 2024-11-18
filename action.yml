@@ -16,6 +16,9 @@ inputs:
   DEX_PASSWORD:
     description: "Dex Password"
     required: true
+  TOTP:
+    description: "MFA TOTP"
+    required: true
 
 runs:
   using: "composite"
@@ -54,6 +57,7 @@ runs:
       env:
         DEX_USERNAME: ${{ inputs.DEX_USERNAME }}
         DEX_PASSWORD: ${{ inputs.DEX_PASSWORD }}
+        TOTP: ${{ inputs.TOTP }}
       run: |
         python ${{ github.action_path }}/script/get_cookies_selenium.py
 
